@@ -18,7 +18,8 @@ contract LLMBroker {
     struct Server {
 
         string model;
-        uint256 tokenCost;
+        uint256 inputTokenCost;
+        uint256 outputTokenCost;
 
         //address of the server contract
         address serverContract;
@@ -39,7 +40,8 @@ contract LLMBroker {
 
         market.push(Server({
             model: "",
-            tokenCost:uint256(2**64-1),
+            inputTokenCost:uint256(2**64-1),
+            outputTokenCost:uint256(2**64-1),
             serverContract:address(server)
         }));
 
@@ -59,14 +61,16 @@ contract LLMBroker {
 
         LLMServer server = LLMServer(market[index].serverContract);
         market[index].model = server.model();
-        market[index].tokenCost = server.tokenCost();
+        market[index].inputTokenCost = server.inputTokenCost();
+        market[index].outputTokenCost = server.outputTokenCost();
     }
 
     //updates the server details with arguments when server is sender
-    function updateServerDetails(uint32 index, string calldata _model, uint256 _tokenCost) external onlyServer(index){
+    function updateServerDetails(uint32 index, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyServer(index){
 
         market[index].model = _model;
-        market[index].tokenCost = _tokenCost;
+        market[index].inputTokenCost = _inputTokenCost;
+        market[index].outputTokenCost = _outputTokenCost;
     }
 
     function getAllServers() external view returns (Server[] memory){

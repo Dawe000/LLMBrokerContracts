@@ -8,11 +8,14 @@ import "./LLMServer.sol";
 
 contract LLMAgreement{
     
-    uint256 remainingTokens;
+    uint256 remainingBalance;
+    uint256 inputTokenCost;
+    uint256 outputTokenCost;
+
     address public serverAddress;
     address payable serverOwner;
     address payable client;
-    uint64 userPubKey;
+    uint64 public clientPubKey;
 
     modifier onlyClient {
         require(
@@ -30,18 +33,21 @@ contract LLMAgreement{
         _;
     }
 
-    constructor(uint256 initialTokens, address payable _serverOwner, address payable _client, uint64 _userPubKey) {
-        remainingTokens = initialTokens;
+    constructor(uint256 _initialBalance, uint256 _inputTokenCost, uint256 _outputTokenCost, address payable _serverOwner, address payable _client, uint64 _clientPubKey) {
+        remainingBalance = _initialBalance;
+        inputTokenCost = _inputTokenCost;
+        outputTokenCost = _outputTokenCost;
+        
         serverAddress = msg.sender;
         serverOwner = _serverOwner;
         client = _client;
-        _userPubKey = _userPubKey;
+        clientPubKey = _clientPubKey;
     }
 
 
-    function notifyResponse(uint32 numTokens) external {
+    function notifyResponse(uint32 numInputTokens, uint32 numOutputTokens) external {
         require(msg.sender == serverOwner, "only the server owner can call this function");
-        remainingTokens = remainingTokens - numTokens;
+        remainingBalance = remainingBalance - (numInputTokens * inputTokenCost + numOutputTokens * outputTokenCost);
     }
 
     function satisfied() external onlyClient{
@@ -50,8 +56,7 @@ contract LLMAgreement{
     }
 
     function unsatisfied(int) external onlyClient{
-        endAgreement();
-        
+        endAgreement();    
     }
 
     function endAgreement() private {

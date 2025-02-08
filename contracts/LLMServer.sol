@@ -24,7 +24,8 @@ contract LLMServer {
     string public model;
 
     //cost of 1 token in gwei
-    uint256 public tokenCost;
+    uint256 public inputTokenCost;
+    uint256 public outputTokenCost;
     
     //url of LLM Server enpoint
     string private endpoint;
@@ -64,24 +65,26 @@ contract LLMServer {
         
     }
 
-    function setupModel(string calldata _endpoint, string calldata _model, uint256 _tokenCost) external onlyOwner {
+    function setupModel(string calldata _endpoint, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyOwner {
 
         //require no active contracts
         model = _model;
-        tokenCost = _tokenCost;
+        inputTokenCost = _inputTokenCost;
+        outputTokenCost = _outputTokenCost;
         endpoint = _endpoint;
 
         //update server details on the broker
         LLMBroker broker = LLMBroker(brokerAddress);
-        broker.updateServerDetails(brokerIndex, _model, _tokenCost);
+        broker.updateServerDetails(brokerIndex, _model, _inputTokenCost, _outputTokenCost);
     }
 
     function setmaxConcurrentAgreements (uint16 _maxConcurrentAgreements) external {
         maxConcurrentAgreements = _maxConcurrentAgreements;
     }
 
-    function setTokenCost (uint256 _tokenCost) external {
-        tokenCost = _tokenCost;
+    function setTokenCost (uint256 _inputTokenCost, uint256 _outputTokenCost) external {
+        inputTokenCost = _inputTokenCost;
+        outputTokenCost = _outputTokenCost;
     }
 
     function updateIndex(uint32 newIndex) external onlyBroker {
@@ -90,7 +93,7 @@ contract LLMServer {
 
     function createAgreement(uint64 pubKey) external payable returns(address){
         require(currentAgreements <= maxConcurrentAgreements, "This server has its maximum number of clients");
-        LLMAgreement agreement = new LLMAgreement(msg.value / tokenCost, serverOwner, payable(msg.sender), pubKey);
+        LLMAgreement agreement = new LLMAgreement(msg.value, inputTokenCost, outputTokenCost, serverOwner, payable(msg.sender), pubKey);
         
         payable(address(agreement)).transfer(msg.value);
 
@@ -98,6 +101,10 @@ contract LLMServer {
         currentAgreements += 1;
 
         return (address(agreement));
+    }
+
+    function getAgreementPubKey(address clientAddress) external view returns(uint64){
+        return LLMAgreement(agreements[clientAddress]).clientPubKey();
     }
 
     function endAgreement() external {
