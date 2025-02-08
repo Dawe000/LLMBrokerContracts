@@ -66,7 +66,8 @@ contract LLMAgreement{
         server.endAgreement();
     } 
 
-    function refund() external onlyServerOwner{
+    function refund() external {
+        require(msg.sender == serverOwner || msg.sender == client);
         client.transfer(address(this).balance);
         endAgreement();
     }
