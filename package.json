@@ -5,6 +5,7 @@
     "hardhat": "^2.22.18"
   },
   "dependencies": {
+    "@flarenetwork/flare-periphery-contracts": "^0.1.21",
     "dotenv": "^16.4.7"
   }
 }
