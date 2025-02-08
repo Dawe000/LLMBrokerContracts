@@ -27,7 +27,6 @@ contract LLMBroker {
     Server[] public market;
     
     modifier onlyServer(uint64 index) {
-        console.log("0");
         require(
             market[index].serverContract == msg.sender,
             "A server can only modify its own market listing"
@@ -49,15 +48,10 @@ contract LLMBroker {
 
     //delete an item by moving the last item into its index, then popping last item
     function deleteServer(uint32 index) external onlyServer(index) {
-        console.log("1");
-        market[index] = market[market.length];
-        console.log("2");
+        market[index] = market[market.length - 1];
         market.pop();
-        console.log("3");
         LLMServer server = LLMServer(market[index].serverContract);
-        console.log("4");
         server.updateIndex(index);
-        console.log("5");
     }
 
     //updates the server details in the market array by reading details from the server contract itself
