@@ -128,18 +128,37 @@ describe("LLMBroker", function () {
           '0xE451980132E65465d0a498c53f0b5227326Dd73F'
         ],
         [
-          'deepseek-r3',
-          1000n,
-          '0xa783CDc72e34a174CCa57a6d9a74904d0Bec05A9'
-        ],
-        [
           'deepseek-r4',
           1000n,
           '0xB30dAf0240261Be564Cea33260F01213c47AAa0D'
+        ],
+        [
+          'deepseek-r3',
+          1000n,
+          '0xa783CDc72e34a174CCa57a6d9a74904d0Bec05A9'
         ]
       ]);
     });
     //only server owner should be able to delete model
+
+    it("Only server owner should be able to set model", async function () {
+
+      const { LLMBroker, accounts, serverAddresses } = await loadFixture(setupServersandModels);
+
+      let LLMServer = await hre.ethers.getContractAt("LLMServer", serverAddresses[2]);
+      await expect(LLMServer.connect(accounts[4]).setupModel("test", "test", 1)).to.be.revertedWith("only the server owner can call this function");
+
+    });
+
+    it("Only server owner should be able to set model", async function () {
+
+      const { LLMBroker, accounts, serverAddresses } = await loadFixture(setupServersandModels);
+
+      let LLMServer = await hre.ethers.getContractAt("LLMServer", serverAddresses[2]);
+      await expect(LLMServer.connect(accounts[4]).destroySelf()).to.be.revertedWith("only the server owner can call this function");
+
+    });
+
     //set up model should reflect in contract
     //model can only be set up by owner
 
