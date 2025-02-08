@@ -17,7 +17,7 @@ contract LLMAgreement{
     address public serverAddress;
     address payable serverOwner;
     address payable client;
-    uint64 public clientPubKey;
+    uint256 public clientPubKey;
 
     modifier onlyClient {
         require(
@@ -35,7 +35,7 @@ contract LLMAgreement{
         _;
     }
 
-    constructor(uint256 _initialBalance, uint256 _inputTokenCost, uint256 _outputTokenCost, address payable _serverOwner, address payable _client, uint64 _clientPubKey) {
+    constructor(uint256 _initialBalance, uint256 _inputTokenCost, uint256 _outputTokenCost, address payable _serverOwner, address payable _client, uint256 _clientPubKey) {
         remainingBalance = _initialBalance;
         inputTokenCost = _inputTokenCost;
         outputTokenCost = _outputTokenCost;
