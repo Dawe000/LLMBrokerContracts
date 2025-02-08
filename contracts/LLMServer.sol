@@ -108,6 +108,8 @@ contract LLMServer {
         brokerIndex = newIndex;
     }
 
+
+
     function createAgreement(uint256 pubKey) external payable returns(address){
         require(currentAgreements <= maxConcurrentAgreements, "This server has its maximum number of clients");
 
@@ -124,6 +126,10 @@ contract LLMServer {
 
     function getAgreementPubKey(address clientAddress) external view returns(uint256){
         return LLMAgreement(agreements[clientAddress]).clientPubKey();
+    }
+
+    function getAgreementContract(address clientAddress) external view returns(address){
+        return agreements[clientAddress];
     }
 
     function endAgreement() external {
