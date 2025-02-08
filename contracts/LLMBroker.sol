@@ -62,8 +62,8 @@ contract LLMBroker {
 
         LLMServer server = LLMServer(market[index].serverContract);
         market[index].model = server.model();
-        market[index].inputTokenCost = server.inputTokenCost();
-        market[index].outputTokenCost = server.outputTokenCost();
+        market[index].inputTokenCost = server.getInputTokenCost();
+        market[index].outputTokenCost = server.getOutputTokenCost();
     }
 
     //updates the server details with arguments when server is sender
