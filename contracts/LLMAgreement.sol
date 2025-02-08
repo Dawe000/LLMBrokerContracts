@@ -53,11 +53,14 @@ contract LLMAgreement{
     }
 
     function satisfied() external onlyClient{
+        client.transfer(remainingBalance);
         serverOwner.transfer(address(this).balance);
         endAgreement();
     }
 
-    function unsatisfied(int) external onlyClient{
+    function unsatisfied() external onlyClient{
+        client.transfer(remainingBalance);
+        //serverOwner.transfer(address(this).balance);
         endAgreement();    
     }
 
@@ -66,8 +69,7 @@ contract LLMAgreement{
         server.endAgreement();
     } 
 
-    function refund() external {
-        require(msg.sender == serverOwner || msg.sender == client);
+    function refund() external onlyServerOwner{
         client.transfer(address(this).balance);
         endAgreement();
     }
