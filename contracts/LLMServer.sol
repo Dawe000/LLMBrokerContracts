@@ -30,6 +30,9 @@ contract LLMServer {
     //owners wallet address
     address payable private serverOwner;
 
+    //max concurrent users
+    uint16 private maxConcurrentUsers;
+
     modifier onlyBroker {
         require(
             msg.sender == brokerAddress,
@@ -50,9 +53,13 @@ contract LLMServer {
         brokerAddress = _brokerAddress;
         brokerIndex = _brokerIndex;
         serverOwner = _serverOwner;
+        maxConcurrentUsers = 5;
+        
     }
 
     function setupModel(string calldata _endpoint, string calldata _model, uint64 _tokenCost) external onlyOwner {
+
+        //require no active contracts
         model = _model;
         tokenCost = _tokenCost;
         endpoint = _endpoint;
@@ -62,13 +69,20 @@ contract LLMServer {
         broker.updateServerDetails(brokerIndex, _model, _tokenCost);
     }
 
+    function setMaxConcurrentUsers (uint16 _maxConcurrentUsers) external {
+        maxConcurrentUsers = _maxConcurrentUsers;
+    }
+
+    function setTokenCost (uint64 _tokenCost) external {
+        tokenCost = _tokenCost;
+    }
+
     function updateIndex(uint32 newIndex) external onlyBroker {
         brokerIndex = newIndex;
     }
 
     function destroySelf() external onlyOwner {
         LLMBroker broker = LLMBroker(brokerAddress);
-        console.log(brokerIndex);
         broker.deleteServer(brokerIndex);
     }
 }
