@@ -34,10 +34,10 @@ describe("LLMBroker", function () {
       let serverAddresses = [];
 
       for(let i = 0; i < numServers; i++){
-        serverAddresses[i] = allServers[i][2];
+        serverAddresses[i] = allServers[i][3];
 
         let LLMServer = await hre.ethers.getContractAt("LLMServer", serverAddresses[i]);
-        await (LLMServer.connect(accounts[i + 1]) as any).setupModel("local" + String(i), "deepseek-r" + String(i), 1000n);
+        await (LLMServer.connect(accounts[i + 1]) as any).setupModel("local" + String(i), "deepseek-r" + String(i), 1000n, 2000n);
       }
 
       return { LLMBroker, accounts, serverAddresses };
@@ -60,10 +60,10 @@ describe("LLMBroker", function () {
 
       // assert that the value is correct
       expect(regResult).to.deep.equal([
-        ['', 2n**64n-1n, '0xCafac3dD18aC6c6e92c921884f9E4176737C052c'],
-        ['', 2n**64n-1n, '0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e'],
-        ['', 2n**64n-1n, '0xbf9fBFf01664500A33080Da5d437028b07DFcC55'],
-        ['', 2n**64n-1n, '0x93b6BDa6a0813D808d75aA42e900664Ceb868bcF']
+        ['', 2n**64n-1n, 2n**64n-1n, '0xCafac3dD18aC6c6e92c921884f9E4176737C052c'],
+        ['', 2n**64n-1n, 2n**64n-1n, '0x9f1ac54BEF0DD2f6f3462EA0fa94fC62300d3a8e'],
+        ['', 2n**64n-1n, 2n**64n-1n, '0xbf9fBFf01664500A33080Da5d437028b07DFcC55'],
+        ['', 2n**64n-1n, 2n**64n-1n, '0x93b6BDa6a0813D808d75aA42e900664Ceb868bcF']
       ]);
     });
 
@@ -79,26 +79,31 @@ describe("LLMBroker", function () {
         [
           'deepseek-r0',
           1000n,
+          2000n,
           '0x75537828f2ce51be7289709686A69CbFDbB714F1'
         ],
         [
           'deepseek-r1',
           1000n,
+          2000n,
           '0xE451980132E65465d0a498c53f0b5227326Dd73F'
         ],
         [
           'deepseek-r2',
           1000n,
+          2000n,
           '0x5392A33F7F677f59e833FEBF4016cDDD88fF9E67'
         ],
         [
           'deepseek-r3',
           1000n,
+          2000n,
           '0xa783CDc72e34a174CCa57a6d9a74904d0Bec05A9'
         ],
         [
           'deepseek-r4',
           1000n,
+          2000n,
           '0xB30dAf0240261Be564Cea33260F01213c47AAa0D'
         ]
       ]);
@@ -120,21 +125,25 @@ describe("LLMBroker", function () {
         [
           'deepseek-r0',
           1000n,
+          2000n,
           '0x75537828f2ce51be7289709686A69CbFDbB714F1'
         ],
         [
           'deepseek-r1',
           1000n,
+          2000n,
           '0xE451980132E65465d0a498c53f0b5227326Dd73F'
         ],
         [
           'deepseek-r4',
           1000n,
+          2000n,
           '0xB30dAf0240261Be564Cea33260F01213c47AAa0D'
         ],
         [
           'deepseek-r3',
           1000n,
+          2000n,
           '0xa783CDc72e34a174CCa57a6d9a74904d0Bec05A9'
         ]
       ]);
@@ -146,7 +155,7 @@ describe("LLMBroker", function () {
       const { LLMBroker, accounts, serverAddresses } = await loadFixture(setupServersandModels);
 
       let LLMServer = await hre.ethers.getContractAt("LLMServer", serverAddresses[2]);
-      await expect(LLMServer.connect(accounts[4]).setupModel("test", "test", 1)).to.be.revertedWith("only the server owner can call this function");
+      await expect(LLMServer.connect(accounts[4]).setupModel("test", "test", 1, 1)).to.be.revertedWith("only the server owner can call this function");
 
     });
 
