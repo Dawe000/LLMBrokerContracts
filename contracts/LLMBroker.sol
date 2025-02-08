@@ -23,6 +23,7 @@ contract LLMBroker {
 
         //address of the server contract
         address serverContract;
+        address owner;
     }
 
     Server[] public market;
@@ -35,6 +36,7 @@ contract LLMBroker {
         _;
     }
 
+    event serverCreated(address indexed serverAddress, address indexed owner);
 
     function createServer() external returns (address){
         LLMServer server = new LLMServer(payable(msg.sender), address(this), uint32(market.length));
@@ -43,8 +45,11 @@ contract LLMBroker {
             model: "",
             inputTokenCost:uint256(2**256-1),
             outputTokenCost:uint256(2**256-1),
-            serverContract:address(server)
+            serverContract:address(server),
+            owner:msg.sender
         }));
+
+        emit serverCreated(address(server), msg.sender);
 
         return address(server);
     }
