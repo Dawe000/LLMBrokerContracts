@@ -35,13 +35,14 @@ contract LLMBroker {
         _;
     }
 
+
     function createServer() external returns (address){
         LLMServer server = new LLMServer(payable(msg.sender), address(this), uint32(market.length));
 
         market.push(Server({
             model: "",
-            inputTokenCost:uint256(2**64-1),
-            outputTokenCost:uint256(2**64-1),
+            inputTokenCost:uint256(2**256-1),
+            outputTokenCost:uint256(2**256-1),
             serverContract:address(server)
         }));
 
