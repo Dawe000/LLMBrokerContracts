@@ -18,7 +18,7 @@ contract LLMBroker {
     struct Server {
 
         string model;
-        uint64 tokenCost;
+        uint256 tokenCost;
 
         //address of the server contract
         address serverContract;
@@ -26,7 +26,7 @@ contract LLMBroker {
 
     Server[] public market;
     
-    modifier onlyServer(uint64 index) {
+    modifier onlyServer(uint256 index) {
         require(
             market[index].serverContract == msg.sender,
             "A server can only modify its own market listing"
@@ -39,7 +39,7 @@ contract LLMBroker {
 
         market.push(Server({
             model: "",
-            tokenCost:uint64(2**64-1),
+            tokenCost:uint256(2**64-1),
             serverContract:address(server)
         }));
 
@@ -63,7 +63,7 @@ contract LLMBroker {
     }
 
     //updates the server details with arguments when server is sender
-    function updateServerDetails(uint32 index, string calldata _model, uint64 _tokenCost) external onlyServer(index){
+    function updateServerDetails(uint32 index, string calldata _model, uint256 _tokenCost) external onlyServer(index){
 
         market[index].model = _model;
         market[index].tokenCost = _tokenCost;
