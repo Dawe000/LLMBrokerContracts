@@ -2,7 +2,7 @@
 pragma solidity ^0.8.28;
 
 // Uncomment this line to use console.log
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 import "./LLMServer.sol";
 
@@ -69,6 +69,13 @@ contract LLMBroker {
     function updateServerDetails(uint32 index, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyServer(index){
 
         market[index].model = _model;
+        market[index].inputTokenCost = _inputTokenCost;
+        market[index].outputTokenCost = _outputTokenCost;
+    }
+
+
+    function updateServerTokenCost(uint32 index, uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyServer(index){
+
         market[index].inputTokenCost = _inputTokenCost;
         market[index].outputTokenCost = _outputTokenCost;
     }

@@ -2,15 +2,17 @@
 pragma solidity ^0.8.28;
 
 // Uncomment this line to use console.log
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
-import "./LLMBroker.sol";
+//import "./LLMBroker.sol";
 import "./LLMAgreement.sol";
 
-/*interface ILLMBroker{
+interface ILLMBroker{
     function updateServerDetails(uint) external;
-    function deleteServer
-}*/
+    function updateServerDetails(uint32 index, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external;
+    function updateServerTokenCost(uint32 index, uint256 _inputTokenCost, uint256 _outputTokenCost) external;
+    function deleteServer(uint32 index) external;
+}
 
 contract LLMServer {
 
@@ -74,17 +76,19 @@ contract LLMServer {
         endpoint = _endpoint;
 
         //update server details on the broker
-        LLMBroker broker = LLMBroker(brokerAddress);
+        ILLMBroker broker = ILLMBroker(brokerAddress);
         broker.updateServerDetails(brokerIndex, _model, _inputTokenCost, _outputTokenCost);
     }
 
-    function setmaxConcurrentAgreements (uint16 _maxConcurrentAgreements) external {
+    function setmaxConcurrentAgreements (uint16 _maxConcurrentAgreements) external onlyOwner{
         maxConcurrentAgreements = _maxConcurrentAgreements;
     }
 
-    function setTokenCost (uint256 _inputTokenCost, uint256 _outputTokenCost) external {
+    function setTokenCost (uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyOwner{
         inputTokenCost = _inputTokenCost;
         outputTokenCost = _outputTokenCost;
+        ILLMBroker broker = ILLMBroker(brokerAddress);
+        broker.updateServerTokenCost(brokerIndex, _inputTokenCost, _outputTokenCost);
     }
 
     function updateIndex(uint32 newIndex) external onlyBroker {
@@ -113,7 +117,7 @@ contract LLMServer {
     }
 
     function destroySelf() external onlyOwner {
-        LLMBroker broker = LLMBroker(brokerAddress);
+        ILLMBroker broker = ILLMBroker(brokerAddress);
         broker.deleteServer(brokerIndex);
     }
 }
