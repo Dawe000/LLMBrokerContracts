@@ -5,6 +5,7 @@ pragma solidity ^0.8.28;
 import "hardhat/console.sol";
 
 import "./LLMBroker.sol";
+import "./LLMAgreement.sol";
 
 /*interface ILLMBroker{
     function updateServerDetails(uint) external;
@@ -15,6 +16,7 @@ contract LLMServer {
 
     //address of the owning broker contract
     address private brokerAddress;
+
     //index of this contract in the broker market array
     uint32 private brokerIndex;
 
@@ -22,7 +24,7 @@ contract LLMServer {
     string public model;
 
     //cost of 1 token in gwei
-    uint64 public tokenCost;
+    uint256 public tokenCost;
     
     //url of LLM Server enpoint
     string private endpoint;
@@ -31,7 +33,12 @@ contract LLMServer {
     address payable private serverOwner;
 
     //max concurrent users
-    uint16 private maxConcurrentUsers;
+    uint16 private maxConcurrentAgreements;
+
+    //map of client address to agreement contracts
+    mapping(address => address) public agreements;
+
+    uint16 public currentAgreements;
 
     modifier onlyBroker {
         require(
@@ -53,11 +60,11 @@ contract LLMServer {
         brokerAddress = _brokerAddress;
         brokerIndex = _brokerIndex;
         serverOwner = _serverOwner;
-        maxConcurrentUsers = 5;
+        maxConcurrentAgreements = 5;
         
     }
 
-    function setupModel(string calldata _endpoint, string calldata _model, uint64 _tokenCost) external onlyOwner {
+    function setupModel(string calldata _endpoint, string calldata _model, uint256 _tokenCost) external onlyOwner {
 
         //require no active contracts
         model = _model;
@@ -69,16 +76,33 @@ contract LLMServer {
         broker.updateServerDetails(brokerIndex, _model, _tokenCost);
     }
 
-    function setMaxConcurrentUsers (uint16 _maxConcurrentUsers) external {
-        maxConcurrentUsers = _maxConcurrentUsers;
+    function setmaxConcurrentAgreements (uint16 _maxConcurrentAgreements) external {
+        maxConcurrentAgreements = _maxConcurrentAgreements;
     }
 
-    function setTokenCost (uint64 _tokenCost) external {
+    function setTokenCost (uint256 _tokenCost) external {
         tokenCost = _tokenCost;
     }
 
     function updateIndex(uint32 newIndex) external onlyBroker {
         brokerIndex = newIndex;
+    }
+
+    function createAgreement(uint64 pubKey) external payable returns(address){
+        require(currentAgreements <= maxConcurrentAgreements, "This server has its maximum number of clients");
+        LLMAgreement agreement = new LLMAgreement(msg.value / tokenCost, serverOwner, payable(msg.sender), pubKey);
+        
+        payable(address(agreement)).transfer(msg.value);
+
+        agreements[msg.sender] = address(agreement);
+        currentAgreements += 1;
+
+        return (address(agreement));
+    }
+
+    function endAgreement() external {
+        delete agreements[msg.sender];
+        currentAgreements -= 1;
     }
 
     function destroySelf() external onlyOwner {
