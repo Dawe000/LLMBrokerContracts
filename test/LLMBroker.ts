@@ -37,7 +37,7 @@ describe("LLMBroker", function () {
         serverAddresses[i] = allServers[i][3];
 
         let LLMServer = await hre.ethers.getContractAt("LLMServer", serverAddresses[i]);
-        await (LLMServer.connect(accounts[i + 1]) as any).setupModel("local" + String(i), "deepseek-r" + String(i), 1000n, 2000n);
+        await (LLMServer.connect(accounts[i + 1]) as any).setupModel("local" + String(i), "deepseek-r" + String(i), 1000n, 2000n, i % 2 == 0);
       }
 
       return { LLMBroker, accounts, serverAddresses };
