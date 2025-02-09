@@ -10,16 +10,26 @@ import "./LLMAgreement.sol";
 import {ContractRegistry} from "@flarenetwork/flare-periphery-contracts/coston2/ContractRegistry.sol";
 import {TestFtsoV2Interface} from "@flarenetwork/flare-periphery-contracts/coston2/TestFtsoV2Interface.sol";
 
-
-interface ILLMBroker{
+interface ILLMBroker {
     function updateServerDetails(uint) external;
-    function updateServerDetails(uint32 index, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external;
-    function updateServerTokenCost(uint32 index, uint256 _inputTokenCost, uint256 _outputTokenCost) external;
+
+    function updateServerDetails(
+        uint32 index,
+        string calldata _model,
+        uint256 _inputTokenCost,
+        uint256 _outputTokenCost
+    ) external;
+
+    function updateServerTokenCost(
+        uint32 index,
+        uint256 _inputTokenCost,
+        uint256 _outputTokenCost
+    ) external;
+
     function deleteServer(uint32 index) external;
 }
 
 contract LLMServer {
-
     //address of the owning broker contract
     address private brokerAddress;
 
@@ -33,7 +43,7 @@ contract LLMServer {
     uint256 private inputTokenCost;
     uint256 private outputTokenCost;
     bool public costInUSD;
-    
+
     //url of LLM Server enpoint
     string private endpoint;
 
@@ -52,8 +62,7 @@ contract LLMServer {
     // FLR/USD feed identifier. See https://dev.flare.network/ftso/feeds for the full list.
     bytes21[] private flrFeedId;
 
-
-    modifier onlyBroker {
+    modifier onlyBroker() {
         require(
             msg.sender == brokerAddress,
             "only the brokerage can call this function"
@@ -61,7 +70,7 @@ contract LLMServer {
         _;
     }
 
-    modifier onlyOwner {
+    modifier onlyOwner() {
         require(
             msg.sender == serverOwner,
             "only the server owner can call this function"
@@ -69,53 +78,91 @@ contract LLMServer {
         _;
     }
 
-    constructor(address payable _serverOwner, address _brokerAddress, uint32 _brokerIndex) {
+    constructor(
+        address payable _serverOwner,
+        address _brokerAddress,
+        uint32 _brokerIndex
+    ) {
         brokerAddress = _brokerAddress;
         brokerIndex = _brokerIndex;
         serverOwner = _serverOwner;
         maxConcurrentAgreements = 5;
-        
+
         ftsoV2 = ContractRegistry.getTestFtsoV2();
         flrFeedId = [bytes21(0x01464c522f55534400000000000000000000000000)]; //constant flare test feed id
     }
 
-    function setupModel(string calldata _endpoint, string calldata _model, uint256 _inputTokenCost, uint256 _outputTokenCost) external onlyOwner {
-
+    function setupModel(
+        string calldata _endpoint,
+        string calldata _model,
+        uint256 _inputTokenCost,
+        uint256 _outputTokenCost,
+        bool _costInUSD
+    ) external onlyOwner {
         //require no active contracts
         model = _model;
         inputTokenCost = _inputTokenCost;
         outputTokenCost = _outputTokenCost;
         endpoint = _endpoint;
+        costInUSD = _costInUSD;
 
         //update server details on the broker
         ILLMBroker broker = ILLMBroker(brokerAddress);
-        broker.updateServerDetails(brokerIndex, _model, _inputTokenCost, _outputTokenCost);
+
+        broker.updateServerDetails(
+            brokerIndex,
+            _model,
+            getInputTokenCost(),
+            getOutputTokenCost()
+        );
     }
 
-    function setmaxConcurrentAgreements (uint16 _maxConcurrentAgreements) external onlyOwner{
+    function setmaxConcurrentAgreements(
+        uint16 _maxConcurrentAgreements
+    ) external onlyOwner {
         maxConcurrentAgreements = _maxConcurrentAgreements;
     }
 
-    function setTokenCost (uint256 _inputTokenCost, uint256 _outputTokenCost, bool _costInUsd) external onlyOwner{
+    function setTokenCost(
+        uint256 _inputTokenCost,
+        uint256 _outputTokenCost,
+        bool _costInUSD
+    ) external onlyOwner {
         inputTokenCost = _inputTokenCost;
         outputTokenCost = _outputTokenCost;
-        costInUSD = _costInUsd;
+        costInUSD = _costInUSD;
         ILLMBroker broker = ILLMBroker(brokerAddress);
-        broker.updateServerTokenCost(brokerIndex, _inputTokenCost, _outputTokenCost);
+
+        broker.updateServerTokenCost(
+            brokerIndex,
+            getInputTokenCost(),
+            getOutputTokenCost()
+        );
     }
 
     function updateIndex(uint32 newIndex) external onlyBroker {
         brokerIndex = newIndex;
     }
 
+    function createAgreement(
+        uint256 pubKey
+    ) external payable returns (address) {
+        require(
+            currentAgreements <= maxConcurrentAgreements,
+            "This server has its maximum number of clients"
+        );
 
+        LLMAgreement agreement;
 
-    function createAgreement(uint256 pubKey) external payable returns(address){
-        require(currentAgreements <= maxConcurrentAgreements, "This server has its maximum number of clients");
+        agreement = new LLMAgreement(
+            msg.value,
+            getInputTokenCost(),
+            getOutputTokenCost(),
+            serverOwner,
+            payable(msg.sender),
+            pubKey
+        );
 
-
-        LLMAgreement agreement = new LLMAgreement(msg.value, inputTokenCost, outputTokenCost, serverOwner, payable(msg.sender), pubKey);
-        
         payable(address(agreement)).transfer(msg.value);
 
         agreements[msg.sender] = address(agreement);
@@ -124,11 +171,15 @@ contract LLMServer {
         return (address(agreement));
     }
 
-    function getAgreementPubKey(address clientAddress) external view returns(uint256){
+    function getAgreementPubKey(
+        address clientAddress
+    ) external view returns (uint256) {
         return LLMAgreement(agreements[clientAddress]).clientPubKey();
     }
 
-    function getAgreementContract(address clientAddress) external view returns(address){
+    function getAgreementContract(
+        address clientAddress
+    ) external view returns (address) {
         return agreements[clientAddress];
     }
 
@@ -142,25 +193,26 @@ contract LLMServer {
         broker.deleteServer(brokerIndex);
     }
 
-    function getInputTokenCost() external view returns(uint256){
-        if(costInUSD){
+    function getInputTokenCost() public view returns (uint256) {
+        if (costInUSD) {
             return (inputTokenCost);
         } else {
             return inputTokenCost;
         }
     }
 
-    function getOutputTokenCost() external view returns(uint256){
-        if(costInUSD){
+    function getOutputTokenCost() public view returns (uint256) {
+        if (costInUSD) {
             return USDtoFLR(outputTokenCost);
         } else {
             return outputTokenCost;
         }
     }
 
-    function USDtoFLR(uint256 usdAmt) private view returns (uint256){
-        (uint256[] memory feedValues, int8[] memory feedDecimals, ) = ftsoV2.getFeedsById(flrFeedId);
+    function USDtoFLR(uint256 usdAmt) private view returns (uint256) {
+        (uint256[] memory feedValues, int8[] memory feedDecimals, ) = ftsoV2
+            .getFeedsById(flrFeedId);
 
-        return (usdAmt * uint256(uint8(10^feedDecimals[0]))) / feedValues[0];
+        return (usdAmt * uint256(uint8(10 ^ feedDecimals[0]))) / feedValues[0];
     }
 }
