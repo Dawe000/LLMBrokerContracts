@@ -45,7 +45,7 @@ contract LLMServer {
     bool public costInUSD;
 
     //url of LLM Server enpoint
-    string private endpoint;
+    string public endpoint;
 
     //owners wallet address
     address payable private serverOwner;
