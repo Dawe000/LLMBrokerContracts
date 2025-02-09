@@ -35,7 +35,7 @@ contract LLMAgreement{
         _;
     }
 
-    constructor(uint256 _initialBalance, uint256 _inputTokenCost, uint256 _outputTokenCost, address payable _serverOwner, address payable _client, uint256 _clientPubKey) {
+    constructor(uint256 _initialBalance, uint256 _inputTokenCost, uint256 _outputTokenCost, address payable _serverOwner, address payable _client, uint256 _clientPubKey) payable {
         remainingBalance = _initialBalance;
         inputTokenCost = _inputTokenCost;
         outputTokenCost = _outputTokenCost;

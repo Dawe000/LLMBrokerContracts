@@ -154,7 +154,7 @@ contract LLMServer {
 
         LLMAgreement agreement;
 
-        agreement = new LLMAgreement(
+        agreement = new LLMAgreement{value: msg.value}(
             msg.value,
             getInputTokenCost(),
             getOutputTokenCost(),
@@ -162,8 +162,6 @@ contract LLMServer {
             payable(msg.sender),
             pubKey
         );
-
-        payable(address(agreement)).transfer(msg.value);
 
         agreements[msg.sender] = address(agreement);
         currentAgreements += 1;
@@ -195,7 +193,7 @@ contract LLMServer {
 
     function getInputTokenCost() public view returns (uint256) {
         if (costInUSD) {
-            return (inputTokenCost);
+            return USDtoFLR(inputTokenCost);
         } else {
             return inputTokenCost;
         }
@@ -212,7 +210,6 @@ contract LLMServer {
     function USDtoFLR(uint256 usdAmt) private view returns (uint256) {
         (uint256[] memory feedValues, int8[] memory feedDecimals, ) = ftsoV2
             .getFeedsById(flrFeedId);
-
-        return (usdAmt * uint256(uint8(10 ^ feedDecimals[0]))) / feedValues[0];
+        return (usdAmt * feedValues[0]) / uint256(uint8(10 ^ feedDecimals[0]));
     }
 }
