@@ -86,7 +86,7 @@ contract LLMServer {
         brokerAddress = _brokerAddress;
         brokerIndex = _brokerIndex;
         serverOwner = _serverOwner;
-        maxConcurrentAgreements = 5;
+        maxConcurrentAgreements = 1000;
 
         ftsoV2 = ContractRegistry.getTestFtsoV2();
         flrFeedId = [bytes21(0x01464c522f55534400000000000000000000000000)]; //constant flare test feed id
