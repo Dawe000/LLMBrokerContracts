@@ -10,7 +10,7 @@ interface ILLMServer {
 
 contract LLMAgreement{
     
-    uint256 remainingBalance;
+    uint256 public remainingBalance;
     uint256 inputTokenCost;
     uint256 outputTokenCost;
 
